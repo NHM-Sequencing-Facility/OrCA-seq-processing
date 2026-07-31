@@ -164,7 +164,7 @@ echo "Sample identifier: $identifier"
 echo "Amplicon type: $amplicon_type"
 
 # Create output directory
-output_dir="${basedir}/primerless/${identifier}/${amplicon_type}"
+output_dir="${basedir}/04_primerless/${identifier}/${amplicon_type}"
 mkdir -p "$output_dir"
 echo "Output directory: $output_dir"
 
@@ -192,7 +192,7 @@ declare -a r1_pair_ids
 current_header=""
 current_seq=""
 
-while IFS= read -r line; do
+while IFS= read -r line || [ -n "$line" ]; do
     # Skip empty lines
     if [ -z "$line" ]; then
         continue
@@ -281,7 +281,7 @@ if [ "$run_round2" = true ] && [ -n "$r2_primers_file" ]; then
     current_header=""
     current_seq=""
     
-    while IFS= read -r line; do
+    while IFS= read -r line || [ -n "$line" ]; do
         # Skip empty lines
         if [ -z "$line" ]; then
             continue
@@ -360,7 +360,8 @@ fi
 
 
 # Activate cutadapt environment
-source activate cutadapt
+source $(conda info --base)/etc/profile.d/conda.sh
+conda activate orca-seq
 
 
 # ROUND 1: Linked primer trimming
@@ -396,9 +397,6 @@ echo "  Untrimmed sequences: $untrimmed_fasta_round1"
 
 if [ -f "$primerless_fasta_round1" ] && [ -s "$primerless_fasta_round1" ]; then
     echo "--- Failsafe: Checking for residual primers with seqkit locate ---"
-    
-    # Switch to seqkit environment
-    conda deactivate && source activate seqkit
     
     # Concatenate Round 1 primers
     cat "$r1_primers_file" > "$temp_primers"

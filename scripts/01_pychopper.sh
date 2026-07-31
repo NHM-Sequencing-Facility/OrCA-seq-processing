@@ -1,42 +1,53 @@
 #!/bin/bash
 #SBATCH --job-name=pychopper
-#SBATCH --mem=2G
-#SBATCH --cpus-per-task=24
-#SBATCH --time=02:00:00
+#SBATCH --mem=8G
+#SBATCH --cpus-per-task=16
 #SBATCH --output=%x_%j.log
 
 # Check if input file argument is provided
-if [ $# -eq 0 ]; then
+if [ $# -lt 1 ]; then
     echo "Error: No input file provided"
-    echo "Usage: sbatch $0 <input_fastq_file>"
+    echo "Usage: sbatch $0 <input_fastq_file> [output_dir]"
     exit 1
 fi
 
 # variables
 Qscore=10  # Set the quality score threshold
+THREADS=16
 infile="$1"  # Input FASTQ file from command line argument
 
 # Extract directory and filename components
 indir=$(dirname "$infile")
 filename=$(basename "$infile")
+
 # Remove .gz extension if present, then remove .fastq/.fq extension
 basename_no_ext="${filename%.gz}"
 basename_no_ext="${basename_no_ext%.fastq}"
 basename_no_ext="${basename_no_ext%.fq}"
 
-# Create output directory and filenames based on input
-outdir="$indir/pychopped"
-outfile="$outdir/pychopped_${basename_no_ext}.gz"
+# Set output directory: use user-specified or default to input dir
+if [ -n "$2" ]; then
+    outdir="$2"
+else
+    outdir="$indir/pychopped"
+fi
 
-# Static paths for primer sequences and config
-primer_seqs=nanopore-barcoding-ORC/adapters_primers/M13_seqs_for_pychopper.fa # primer sequences plus N wildcards for variable section
-config=nanopore-barcoding-ORC/adapters_primers/M13_config_for_pychopper.txt # configuration file for sequence orientation
+outfile="$outdir/pychopped_${basename_no_ext}.fastq.gz"
+
+# Get the directory of this script
+SCRIPT_DIR="/hpc/scratch/DP/OrCA-seq-processing/scripts"
+
+# Paths for primer sequences and config
+primer_seqs="${SCRIPT_DIR}/../adapters_primers/M13_seqs_for_pychopper.fa"
+config="${SCRIPT_DIR}/../adapters_primers/M13_config_for_pychopper.txt"
 
 # Make directories if not existing already
 mkdir -p "$outdir"
 
 # for my specific cluster, I need source activate my environments. Most clusters use conda activate (or mamba activate)
-source activate pychopper_v2 # v2.7.10
+source $(conda info --base)/etc/profile.d/conda.sh
+
+conda activate pychopper
 
 echo "Processing: $infile"
 echo "Output directory: $outdir"
@@ -52,6 +63,6 @@ pychopper \
  -l "$outdir"/${basename_no_ext}_short.fastq \
  -S "$outdir"/${basename_no_ext}_stats.out \
  -p \
- -t 24 \
+ -t "${THREADS}" \
  -m edlib \
- "$infile" > "$outdir"/${basename_no_ext}_pass.fastq
+ "$infile" | gzip > "$outfile"

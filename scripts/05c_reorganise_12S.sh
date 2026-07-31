@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=copy_COI
+#SBATCH --job-name=copy_12S
 #SBATCH --mem=100M
 #SBATCH --cpus-per-task=1
 #SBATCH --output=%x_%j.log
@@ -16,8 +16,8 @@ fi
 # Define directories
 workdir="$1"
 parent_dir=$(dirname "$workdir")
-input_pattern="${workdir}/*/COI/cleaned*.fasta"
-output_base_dir="${parent_dir}/05_COI_gene"
+input_pattern="${workdir}/*/12S/cleaned*.fasta"
+output_base_dir="${parent_dir}/05_12S_gene"
 
 echo "Working directory: ${workdir}"
 echo "Parent directory: ${parent_dir}"
@@ -35,10 +35,9 @@ if [ ! -f "$input_file" ]; then
 fi
 
 # Extract sample identifier from path
-# From: <workdir>/<sample>/COIs/cleaned*.fasta
+# From: <workdir>/<sample>/12S/cleaned*.fasta
 sample_path=$(dirname $(dirname "$input_file"))
 identifier=$(basename "$sample_path")
-
 echo "Identifier: ${identifier}"
 
 # Create output directory for this sample
@@ -46,7 +45,7 @@ sample_output_dir="${output_base_dir}/${identifier}"
 mkdir -p "${sample_output_dir}"
 
 # Copy the file with new name
-output_file="${sample_output_dir}/${identifier}_COI.fasta"
+output_file="${sample_output_dir}/${identifier}_12S.fasta"
 cp "${input_file}" "${output_file}"
 
 echo "Copied ${input_file} to ${output_file}"

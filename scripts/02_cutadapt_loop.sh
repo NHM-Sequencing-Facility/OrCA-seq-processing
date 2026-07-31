@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=demux_and_clean
-#SBATCH --mem=4G
-#SBATCH --cpus-per-task=24
+#SBATCH --mem=8G
+#SBATCH --cpus-per-task=16
 #SBATCH --time=02:00:00
 #SBATCH --output=%x_%j.log
 
@@ -18,7 +18,7 @@ fi
 
 # Define variables
 infile="$1"
-threads=24
+threads=16
 e_rate=0.1
 
 # Extract directory and filename components
@@ -36,12 +36,15 @@ dataset="${dataset%_pass}"
 
 # Setup directories
 parent_dir=$(dirname "$indir")
-outdir="$parent_dir/demuxed"
+outdir="$parent_dir/02_demuxed"
 mkdir -p "$outdir"/{SP5,SP27}
 
+# Get the directory of this script
+SCRIPT_DIR="/hpc/scratch/DP/OrCA-seq-processing/scripts"
+
 # Define adapter and primer paths
-adapters_SP5=nanopore-barcoding-ORC/adapters_primers/M13_amplicon_indices_forward.fa
-adapters_SP27=nanopore-barcoding-ORC/adapters_primers/M13_amplicon_indices_reverse_rc.fa
+adapters_SP5="${SCRIPT_DIR}/../adapters_primers/M13_amplicon_indices_forward.fa"
+adapters_SP27="${SCRIPT_DIR}/../adapters_primers/M13_amplicon_indices_reverse_rc.fa"
 echo "========================================="
 echo "Processing: $infile"
 echo "Dataset name: $dataset"
@@ -49,7 +52,7 @@ echo "Output directory: $outdir"
 echo "========================================="
 
 # Verify required files exist
-for f in "$infile" "$adapters_SP5" "$adapters_SP27" "$primers_fwd" "$primers_rvs"; do
+for f in "$infile" "$adapters_SP5" "$adapters_SP27"; do
     if [ ! -f "$f" ]; then
         echo "Error: Required file not found: $f"
         exit 1
@@ -57,7 +60,8 @@ for f in "$infile" "$adapters_SP5" "$adapters_SP27" "$primers_fwd" "$primers_rvs
 done
 
 # Activate conda environment
-source activate cutadapt
+source $(conda info --base)/etc/profile.d/conda.sh
+conda activate orca-seq
 
 # First round: demultiplex with SP5 adapters
 echo "Round 1: Demultiplexing with SP5 adapters..."

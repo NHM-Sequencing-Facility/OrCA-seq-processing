@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=AS_array
 #SBATCH --mem=2G
-#SBATCH --cpus-per-task=12
+#SBATCH --cpus-per-task=8
 #SBATCH --time=12:00:00
 #SBATCH --output=%x_%j.log
 #SBATCH --array=1-96
@@ -106,7 +106,7 @@ fi
 
 # Setup directories
 basedir=$(dirname $(dirname "$input_dir"))  # Go up two levels from SP27
-output_base_dir="${basedir}/amplicon_sorted_user"
+output_base_dir="${basedir}/03_amplicon_sorted_user"
 mkdir -p "${output_base_dir}"
 
 echo "Input directory: $input_dir"
@@ -157,10 +157,11 @@ outfolder_rRNAs="${output_base_dir}/${identifier_nopass}/${outfolder_prefix}"
 mkdir -p "${outfolder_rRNAs}"
 
 # Build amplicon_sorter command with optional size parameters
-source activate amplicon_sorter
+source $(conda info --base)/etc/profile.d/conda.sh
+conda activate orca-seq
 
 # Construct the command with conditional size parameters
-as_cmd="python3 nanopore-barcoding-ORC/scripts/auxiliary_code/amplicon_sorter.py \
+as_cmd="python3 /hpc/scratch/DP/ont_pipeline_testing/amplicon_sorter.py \
  -i ${file} \
  -o ${outfolder_rRNAs} \
  -ar \
@@ -190,7 +191,7 @@ fi
 echo "Consensus file created successfully"
 
 # Process consensus file headers
-conda deactivate && source activate seqkit
+conda deactivate && conda activate orca-seq
 
 echo "Reformatting consensus headers..."
 
