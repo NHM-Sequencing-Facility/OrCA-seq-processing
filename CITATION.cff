@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite the preprint below :)"
+authors:
+- family-names: "Keene"
+  given-names: "Dylan"
+  orcid: "https://orcid.org/0009-0006-5122-5412"
+- family-names: "Arya"
+  given-names: "Srishti"
+  orcid: "https://orcid.org/0009-0004-9258-9787"
+- family-names: "Walker"
+  given-names: "Ben"
+  orcid: "https://orcid.org/0009-0008-9713-5652"
+- family-names: "Laumer"
+  given-names: "Christopher Edward"
+  orcid: "https://orcid.org/0000-0001-8097-8516"
+title: "Portable, multilocus DNA barcoding across the diversity of meiofauna"
+version: 1.0.0
+doi: doi.org/10.64898/2026.05.20.726206
+date-released: 2026-05-22
+url: "https://www.biorxiv.org/content/10.64898/2026.05.20.726206v1"

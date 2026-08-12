@@ -5,7 +5,8 @@
 * You'll need this software:
   * pychopper v2.7.0 : `conda create -n pychopper bioconda::pychopper`
   * cutadapt v4.9.0: `conda create -n cutadapt bioconda::cutadapt`
-  * Amplicon Sorter (no releases, separate conda packages to install)
+  * Amplicon Sorter (no releases, and you will need to [download the python code to the `scripts/auxiliary_code` directory](https://github.com/avierstr/amplicon_sorter/blob/master/amplicon_sorter.py))
+
     `conda create -n amplicon_sorter && conda install bioconda::python-edlib biopython matplotlib` 
   * seqkit v2.9.0: `conda create -n seqkit bioconda::seqkit`
   * barrnap v0.9: `conda create -n barrnap bioconda::barrnap==0.9`
