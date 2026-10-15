@@ -27,8 +27,8 @@
 #   so a re-run only reruns failures.
 #
 # Usage:
-#   sbatch blastn_screen.sh -i INPUT -o OUTPUT_DIR -d DB [-n DB_NAME]
-#   bash   blastn_screen.sh -i INPUT -o OUTPUT_DIR -d DB [-n DB_NAME]
+#   sbatch 06_BLAST.sh -i INPUT -o OUTPUT_DIR -d DB [-n DB_NAME]
+#   bash   06_BLAST.sh -i INPUT -o OUTPUT_DIR -d DB [-n DB_NAME]
 #
 #   -i, --input     Directory of FASTA files (.fa/.fasta/.fas) or a single multi-FASTA file
 #   -o, --output    Output directory
