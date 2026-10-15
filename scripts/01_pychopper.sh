@@ -35,11 +35,11 @@ fi
 outfile="$outdir/pychopped_${basename_no_ext}.fastq.gz"
 
 # Get the directory of this script
-SCRIPT_DIR="/hpc/scratch/DP/OrCA-seq-processing/scripts"
+REPO_DIR="/home/$USER/OrCA-seq-processing"
 
 # Paths for primer sequences and config
-primer_seqs="${SCRIPT_DIR}/../adapters_primers/M13_seqs_for_pychopper.fa"
-config="${SCRIPT_DIR}/../adapters_primers/M13_config_for_pychopper.txt"
+primer_seqs="$REPO_DIR/adapters_primers/M13_seqs_for_pychopper.fa"
+config="$REPO_DIR/adapters_primers/M13_config_for_pychopper.txt"
 
 # Make directories if not existing already
 mkdir -p "$outdir"

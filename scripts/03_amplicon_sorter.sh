@@ -6,8 +6,6 @@
 #SBATCH --output=%x_%j.log
 #SBATCH --array=1-96
 
-set -euo pipefail  # Exit on error, undefined variables, and pipe failures
-
 # Usage function
 usage() {
     cat << EOF
@@ -160,8 +158,10 @@ mkdir -p "${outfolder_rRNAs}"
 source $(conda info --base)/etc/profile.d/conda.sh
 conda activate orca-seq
 
+REPO_DIR="/home/$USER/OrCA-seq-processing"
+
 # Construct the command with conditional size parameters
-as_cmd="python3 /hpc/scratch/DP/ont_pipeline_testing/amplicon_sorter.py \
+as_cmd="python3 $REPO_DIR/scripts/auxiliary_code/amplicon_sorter.py \
  -i ${file} \
  -o ${outfolder_rRNAs} \
  -ar \
