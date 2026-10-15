@@ -39,12 +39,12 @@ parent_dir=$(dirname "$indir")
 outdir="$parent_dir/02_demuxed"
 mkdir -p "$outdir"/{SP5,SP27}
 
-# Get the directory of this script
-SCRIPT_DIR="/hpc/scratch/DP/OrCA-seq-processing/scripts"
+# Get the directory of the repository directory
+REPO_DIR="/home/$USER/OrCA-seq-processing"
 
 # Define adapter and primer paths
-adapters_SP5="${SCRIPT_DIR}/../adapters_primers/M13_amplicon_indices_forward.fa"
-adapters_SP27="${SCRIPT_DIR}/../adapters_primers/M13_amplicon_indices_reverse_rc.fa"
+adapters_SP5="$REPO_DIR/adapters_primers/M13_amplicon_indices_forward.fa"
+adapters_SP27="$REPO_DIR/adapters_primers/M13_amplicon_indices_reverse_rc.fa"
 echo "========================================="
 echo "Processing: $infile"
 echo "Dataset name: $dataset"
