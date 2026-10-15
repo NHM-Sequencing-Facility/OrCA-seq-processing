@@ -18,7 +18,7 @@ fi
 workdir="$1"
 # Get the parent directory for output (Lakes_day1 instead of Lakes_day1/primerless)
 parent_dir=$(dirname "$workdir")
-input_pattern="${workdir}/*/rrnas/cleaned_amplicon*.fasta"
+input_pattern="${workdir}/*/28S/cleaned_amplicon*.fasta"
 output_base_dir="${parent_dir}/rRNA_genes"
 
 echo "Working directory: ${workdir}"
