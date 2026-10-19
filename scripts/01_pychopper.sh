@@ -29,7 +29,7 @@ basename_no_ext="${basename_no_ext%.fq}"
 if [ -n "$2" ]; then
     outdir="$2"
 else
-    outdir="$indir/pychopped"
+    outdir="$indir/01_pychopped"
 fi
 
 outfile="$outdir/pychopped_${basename_no_ext}.fastq.gz"
