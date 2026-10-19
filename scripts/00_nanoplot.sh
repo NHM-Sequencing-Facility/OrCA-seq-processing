@@ -34,7 +34,7 @@ filename=$(basename "$infile" .gz)
 if [ -n "$2" ]; then
     outdir="$2"
 else
-    outdir="${indir}/${filename}_nanoplot"
+    outdir="${indir}/00_nanoplot"
 fi
 
 echo "Input file: $infile"
