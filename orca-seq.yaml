@@ -10,7 +10,6 @@ dependencies:
   - biopython=1.87
   - python-edlib=1.3.9.post1
   - matplotlib-base=3.10.9
-  - seqkit=2.13.0
+  - seqkit=2.14.0
   - barrnap=0.9
   - blast=2.17.0
-  - seqkit=2.14.0
