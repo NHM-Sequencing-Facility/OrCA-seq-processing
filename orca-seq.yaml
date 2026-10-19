@@ -2,7 +2,6 @@ name: orca-seq
 channels:
   - conda-forge
   - bioconda
-  - nodefaults
 dependencies:
   - python=3.13
   - nanoplot=1.46.2
@@ -14,3 +13,4 @@ dependencies:
   - seqkit=2.13.0
   - barrnap=0.9
   - blast=2.17.0
+  - seqkit=2.14.0
