@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=BLASTn
 #SBATCH --partition=medium
-#SBATCH --output=%x.out
+#SBATCH --output=%x_%j.out
 #SBATCH --error=%x.err
 #SBATCH --mem=64G
 #SBATCH --cpus-per-task=32
@@ -47,7 +47,9 @@
 #   - Needs a prebuilt NCBI (v5) database with taxonomy built in (e.g. core_nt)
 #     Not available when -d is a FASTA file.
 #   - taxonomy4blast.sqlite3 must be in the database directory or in $BLASTDB.
-#     It ships with the NCBI databases and in taxdb.tar.gz.
+#     It ships with the NCBI databases and in taxdb.tar.gz. The script sets
+#     BLASTDB to the directory it is found in, because blastn only looks for it
+#     in $BLASTDB (not next to the -db path).
 #   - If BLAST rejects the taxids (e.g. a taxid that is not in the database),
 #     the script stops instead of retrying every sequence individually.
 #
@@ -209,11 +211,11 @@ if (( ${#TAX_ARGS[@]} > 0 )) && [[ "$BLAST_OPTIONS" =~ $tax_opt_re ]]; then
     exit 1
 fi
 
-# Set path explicitly
-export PATH="/mnt/apps/users/dparsons/conda/bin:$PATH"
+# Set agnostic conda path
+CONDA_BASE=$(conda info --base 2>/dev/null)
 
 # Source conda.sh & activate env
-source /mnt/apps/users/dparsons/conda/etc/profile.d/conda.sh
+source "${CONDA_BASE}/etc/profile.d/conda.sh"
 conda activate blast
 
 BLAST_COLS="qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore stitle"
@@ -354,7 +356,9 @@ else
             echo "https://ftp.ncbi.nlm.nih.gov/blast/db/taxdb.tar.gz - put it alongside the database."
             exit 1
         fi
-        echo "Taxonomy filter: $TAX_DESC (using $tax_sqlite)"
+        # blastn finds the sqlite file via $BLASTDB only, not via the -db path
+        export BLASTDB="$(dirname "$tax_sqlite")"
+        echo "Taxonomy filter: $TAX_DESC (using $tax_sqlite; BLASTDB=$BLASTDB)"
     fi
 fi
 
@@ -458,6 +462,8 @@ scan_fasta() {
 # -----------------------------------------------------------------------------
 # run_blast
 #   Writes to OUT.part and renames it to OUT only if blastn exits successfully.
+#   A taxonomy warning counts as a failure even if blastn exits 0, because
+#   blastn can warn and then search the whole database unfiltered.
 # -----------------------------------------------------------------------------
 run_blast() {
     local query="$1" out="$2" threads="$3"
@@ -469,7 +475,8 @@ run_blast() {
               -outfmt "6 $BLAST_COLS" \
               -num_threads "$threads" \
               "${TAX_ARGS[@]}" \
-              $BLAST_OPTIONS 2> "$out.err"; then
+              $BLAST_OPTIONS 2> "$out.err" \
+       && ! is_taxonomy_error "$out.err"; then
         mv -f "$out.part" "$out"
         return 0
     fi
@@ -532,19 +539,20 @@ run_chunk() {
 
     if run_blast "$query" "$tab" "$threads"; then
         if demux "$work/map.tsv" "$members" "$tab"; then
-            echo "  ✓ chunk $k ($nq sequences) done in $((SECONDS - t0))s"
+            echo "  ? chunk $k ($nq sequences) done in $((SECONDS - t0))s"
+            [ -s "$tab.err" ] && echo "    ! chunk $k BLAST warning: $(head -c 500 "$tab.err" | tr '\n' ' ')"
             rm -f "$query" "$tab" "$tab.err" "$tab.written"
             return 0
         fi
     elif is_taxonomy_error "$tab.err"; then
         # Same error would happen for every sequence, so stop instead of retrying
-        echo "  ✗ chunk $k: BLAST rejected the taxonomy filter: $(head -c 500 "$tab.err" | tr '\n' ' ')"
+        echo "  ? chunk $k: BLAST rejected or ignored the taxonomy filter: $(head -c 500 "$tab.err" | tr '\n' ' ')"
         cp "$tab.err" "$ABORT_FILE"
         rm -f "$query" "$tab" "$tab.err" "$tab.written"
         return 1
     fi
 
-    echo "  ✗ chunk $k ($nq sequences) failed: $(head -c 500 "$tab.err" 2>/dev/null | tr '\n' ' ')"
+    echo "  ? chunk $k ($nq sequences) failed: $(head -c 500 "$tab.err" 2>/dev/null | tr '\n' ' ')"
     echo "    retrying chunk $k one sequence at a time..."
 
     local qid sq stab smem n_ok=0 n_fail=0
@@ -557,11 +565,12 @@ run_chunk() {
         echo "$qid" > "$smem"
         if run_blast "$sq" "$stab" "$threads" && demux "$work/map.tsv" "$smem" "$stab"; then
             ((n_ok++))
+            [ -s "$stab.err" ] && echo "    ! $qid BLAST warning: $(head -c 300 "$stab.err" | tr '\n' ' ')"
         else
             ((n_fail++))
             is_taxonomy_error "$stab.err" && cp "$stab.err" "$ABORT_FILE"
             echo "$qid" >> "$work/chunk_$k.failed"
-            echo "    ✗ $qid failed on retry: $(head -c 300 "$stab.err" 2>/dev/null | tr '\n' ' ')"
+            echo "    ? $qid failed on retry: $(head -c 300 "$stab.err" 2>/dev/null | tr '\n' ' ')"
         fi
         rm -f "$sq" "$smem" "$stab" "$stab.err" "$stab.written"
     done < "$members"
@@ -643,7 +652,7 @@ process_file() {
     local seq_count
     seq_count=$(grep -c '^>' "$fasta")
     if (( seq_count == 0 )); then
-        echo "  ✗ Error: No FASTA sequences found in $fasta"
+        echo "  ? Error: No FASTA sequences found in $fasta"
         return 1
     fi
 
@@ -688,7 +697,7 @@ process_file() {
         wait
 
         if [ -e "$ABORT_FILE" ]; then
-            echo "Error: BLAST rejected the taxonomy filter ($TAX_DESC). Stopping."
+            echo "Error: BLAST rejected or ignored the taxonomy filter ($TAX_DESC). Stopping."
             echo "BLAST said: $(head -c 1000 "$ABORT_FILE" | tr '\n' ' ')"
             echo "Check the taxids exist in the database and that it is a v5 database with taxonomy."
             echo "Higher-level taxids need taxonomy4blast.sqlite3; otherwise use get_species_taxids.sh."
