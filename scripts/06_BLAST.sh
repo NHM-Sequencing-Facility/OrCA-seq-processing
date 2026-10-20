@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=BLASTn
-#SBATCH --partition=hour
+#SBATCH --partition=medium
 #SBATCH --output=%x_%j.out
 #SBATCH --error=%x.err
 #SBATCH --mem=64G
