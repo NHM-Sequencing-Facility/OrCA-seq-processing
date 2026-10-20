@@ -6,8 +6,8 @@ Reads both forwards and reverse index sequences from sample sheet (in the form o
 searches them against the FASTA file, fetches the SP5 and SP27 combination from the FASTA file and pastes
 them into the columns 'Sample F' and 'Sample R'.
 
-Sequences need to be reformatted in order to be searched against the FASTA file where
-sample sheet sequences are:
+Sequences need to be reformatted in order to be searched against the FASTA file, where
+sample sheet sequences look like:
 <constant region> <index sequence>*<nucleotide>
 
 Usage:
