@@ -2,22 +2,33 @@
 
 import re
 import pandas as pd
+import argparse
 import glob
 import os
 import openpyxl 
 from openpyxl.styles import Font, Alignment, PatternFill
 
-# This will need to change depending on the master script, can implement argparser
-sample_sheet= "/home/sophr2/OrCA-seq-processing/OC SSI Indexing_28S.csv"
-cutadapt = "/hpc/scratch/sophr2/DA_2026-04-01_OC-SSI-Run2/no_sample_id/20260401_1152_X2_FBF82196_4b65a8cc/fastq_pass/barcode02/28S_log/demux_samples_summary.tsv"
-amplicon_sorter = "/hpc/scratch/sophr2/DA_2026-04-01_OC-SSI-Run2/no_sample_id/20260401_1152_X2_FBF82196_4b65a8cc/fastq_pass/barcode02/28S_log/amplicon_sorter_summary.tsv"
-cleaning_primers = "/hpc/scratch/sophr2/DA_2026-04-01_OC-SSI-Run2/no_sample_id/20260401_1152_X2_FBF82196_4b65a8cc/fastq_pass/barcode02/28S_log/trim_summary.tsv"
-seqkit_stats = "/hpc/scratch/sophr2/DA_2026-04-01_OC-SSI-Run2/no_sample_id/20260401_1152_X2_FBF82196_4b65a8cc/fastq_pass/barcode02/rRNA_genes/seqkit_stats.tsv"
-barrnap = "/hpc/scratch/sophr2/DA_2026-04-01_OC-SSI-Run2/no_sample_id/20260401_1152_X2_FBF82196_4b65a8cc/fastq_pass/barcode02/rRNA_genes/"
-blast = "/hpc/scratch/sophr2/DA_2026-04-01_OC-SSI-Run2/no_sample_id/20260401_1152_X2_FBF82196_4b65a8cc/fastq_pass/barcode02/rRNA_genes/phylum_fastas/"
+parser = argparse.ArgumentParser()
+parser.add_argument("--sample-sheet", required=True)
+parser.add_argument("--cutadapt", required=True)
+parser.add_argument("--amplicon-sorter", required=True)
+parser.add_argument("--cleaning-primers", required=True)
+parser.add_argument("--seqkit-stats", required=True)
+parser.add_argument("--blast", required=True)
+parser.add_argument("--amplicon", required=True)
+parser.add_argument("--barrnap")
+parser.add_argument("--output", default=None)
+args = parser.parse_args()
 
-# Define the amplicon
-amplicon= "28S"
+sample_sheet     = args.sample_sheet
+cutadapt         = args.cutadapt
+amplicon_sorter  = args.amplicon_sorter
+cleaning_primers = args.cleaning_primers
+seqkit_stats     = args.seqkit_stats
+blast            = args.blast
+amplicon         = args.amplicon
+barrnap          = args.barrnap
+output_path      = args.output or f"pipeline_summary_{amplicon}.xlsx"
 
 # parse the index combinations from the identifier column in amplicon sorter and cleaning primers
 def parse_id(identifier):
@@ -133,8 +144,8 @@ df_blast = df_blast.drop_duplicates(subset="qseqid", keep="first")
 idx = df_blast.groupby(["sample F", "sample R"])["readcount"].idxmax()
 df_hrcb = df_blast.loc[idx]
 
-df_amplicon_sorter = df_amplicon_sorter.rename(columns={"status": "amplicon_status"})
-df_cleaning_primers = df_cleaning_primers.rename(columns={"status": "primers_status"})
+df_amplicon_sorter = df_amplicon_sorter.rename(columns={"status": "sorted_status"})
+df_cleaning_primers = df_cleaning_primers.rename(columns={"status": "trim_status"})
 
 # Merge all the results into a table
 df_output = (
@@ -156,14 +167,17 @@ if amplicon in ["28S", "18S"]:
 
 
 # Save the spreadsheet
-output_path = f"pipeline_summary_{amplicon}.xlsx"
 df_output.to_excel(output_path, index=False)
 
 # Define column groups for the merged header row for user visibility
 groups = [
     ("SAMPLE INFO",      ["Plate Location", "Sample Number", "Phylum", "Class", "Order", "Family", "Genus", "Species", "Forward Indexing Primer", "Reverse Indexing Primer", "sample F", "sample R"]),
     ("CUTADAPT",         ["reads", "rc_reads", "sp5_reads"]),
+<<<<<<< HEAD
     ("AMPLICON SORTER",  ["sorter_status", "reads_in_window", "used_reads", "n_gene_groups", "n_consensus", "top_consensus_reads", "top_consensus_pct", "top2_pct"]),
+=======
+    ("AMPLICON SORTER",  ["sorted_status", "reads_in_window", "used_reads", "n_gene_groups", "n_consensus", "top_consensus_reads", "top_consensus_pct", "top2_pct"]),
+>>>>>>> e75a766 (adding argparse to summary_sheet.py)
     ("CLEANING PRIMERS", ["trim_status", "primer_fwd", "primer_rev"]),
     ("SEQKIT STATS",     ["sum_len", "min_len", "avg_len", "max_len"]),
     ("BLAST",            ["qseqid", "sseqid", "pident", "mismatch", "gapopen", "qstart", "qend", "sstart", "send", "evalue", "stitle"]),
