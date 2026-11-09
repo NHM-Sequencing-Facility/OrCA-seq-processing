@@ -163,8 +163,8 @@ df_output.to_excel(output_path, index=False)
 groups = [
     ("SAMPLE INFO",      ["Plate Location", "Sample Number", "Phylum", "Class", "Order", "Family", "Genus", "Species", "Forward Indexing Primer", "Reverse Indexing Primer", "sample F", "sample R"]),
     ("CUTADAPT",         ["reads", "rc_reads", "sp5_reads"]),
-    ("AMPLICON SORTER",  ["amplicon_status", "reads_in_window", "used_reads", "n_gene_groups", "n_consensus", "top_consensus_reads", "top_consensus_pct", "top2_pct"]),
-    ("CLEANING PRIMERS", ["primers_status", "primer_fwd", "primer_rev"]),
+    ("AMPLICON SORTER",  ["sorter_status", "reads_in_window", "used_reads", "n_gene_groups", "n_consensus", "top_consensus_reads", "top_consensus_pct", "top2_pct"]),
+    ("CLEANING PRIMERS", ["trim_status", "primer_fwd", "primer_rev"]),
     ("SEQKIT STATS",     ["sum_len", "min_len", "avg_len", "max_len"]),
     ("BLAST",            ["qseqid", "sseqid", "pident", "mismatch", "gapopen", "qstart", "qend", "sstart", "send", "evalue", "stitle"]),
 ]
