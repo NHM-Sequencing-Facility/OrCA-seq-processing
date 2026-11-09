@@ -78,10 +78,10 @@ def parse(path):
         r["status"] = "FAIL: incomplete/unknown"
 
     # --- primers ------------------------------------------------------------
-    m = _search(r"^\s*Round 1 Forward \(pair A\):\s*(\S+)", txt)
+    m = _search(r"^\s*Round 1 Forward \(pair [AB]\):\s*(\S+)", txt)
     if m:
         r["primer_fwd"] = m.group(1)
-    m = _search(r"^\s*Round 1 Reverse \(pair A\):\s*(\S+)", txt)
+    m = _search(r"^\s*Round 1 Reverse \(pair [AB]\):\s*(\S+)", txt)
     if m:
         r["primer_rev"] = m.group(1)
 
@@ -152,9 +152,12 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("-d", "--dir", default=".", help="directory containing trim_*.log (default: cwd)")
     ap.add_argument("-p", "--pattern", default="trim_*.log", help="glob pattern (default: trim_*.log)")
-    ap.add_argument("-o", "--out", default="trim_summary.tsv", help="output TSV path")
+    ap.add_argument("-o", "--out", default=None, help="output TSV path (default: <dir>/trim_summary.tsv)")    
     ap.add_argument("-q", "--quiet", action="store_true", help="do not echo table to stdout")
     args = ap.parse_args()
+    
+    if args.out is None:
+        args.out = os.path.join(args.dir, "trim_summary.tsv")
 
     paths = sorted(glob.glob(os.path.join(args.dir, args.pattern)))
     if not paths:
