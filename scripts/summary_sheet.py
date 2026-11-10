@@ -147,6 +147,10 @@ df_hrcb = df_blast.loc[idx]
 df_amplicon_sorter = df_amplicon_sorter.rename(columns={"status": "sorted_status"})
 df_cleaning_primers = df_cleaning_primers.rename(columns={"status": "trim_status"})
 
+blast_cols = ["sample F", "sample R", "qseqid", "sseqid", "pident", "mismatch", "gapopen", "qstart", "qend", "sstart", "send", "evalue", "stitle"]
+if "staxid" in df_hrcb.columns:
+    blast_cols.append("staxid")
+
 # Merge all the results into a table
 df_output = (
     df_samples
@@ -154,7 +158,7 @@ df_output = (
     .merge(df_amplicon_sorter[["sample F", "sample R", "sorted_status", "reads_in_window", "used_reads", "n_gene_groups", "n_consensus", "top_consensus_reads", "top_consensus_pct", "top2_pct"]], on=["sample F", "sample R"], how="left")
     .merge(df_cleaning_primers[["sample F", "sample R", "trim_status", "primer_fwd", "primer_rev"]], on=["sample F", "sample R"], how="left")
     .merge(df_seqkit_stats[["sample F", "sample R", "sum_len", "min_len", "avg_len", "max_len"]], on=["sample F", "sample R"], how="left")
-    .merge(df_hrcb[["sample F", "sample R", "qseqid", "sseqid", "pident", "mismatch", "gapopen", "qstart", "qend", "sstart", "send", "evalue", "stitle"]], on=["sample F", "sample R"], how="left")
+    .merge(df_hrcb[blast_cols], on=["sample F", "sample R"], how="left")
 )
 
 # write out barrnap
@@ -165,9 +169,12 @@ if amplicon in ["28S", "18S"]:
         how="left"
     )
 
-
 # Save the spreadsheet
 df_output.to_excel(output_path, index=False)
+
+blast_group_cols = ["qseqid", "sseqid", "pident", "mismatch", "gapopen", "qstart", "qend", "sstart", "send", "evalue", "stitle"]
+if "staxid" in df_hrcb.columns:
+    blast_group_cols.append("staxid")
 
 # Define column groups for the merged header row for user visibility
 groups = [
@@ -176,7 +183,7 @@ groups = [
     ("AMPLICON SORTER",  ["sorted_status", "reads_in_window", "used_reads", "n_gene_groups", "n_consensus", "top_consensus_reads", "top_consensus_pct", "top2_pct"]),
     ("CLEANING PRIMERS", ["trim_status", "primer_fwd", "primer_rev"]),
     ("SEQKIT STATS",     ["sum_len", "min_len", "avg_len", "max_len"]),
-    ("BLAST",            ["qseqid", "sseqid", "pident", "mismatch", "gapopen", "qstart", "qend", "sstart", "send", "evalue", "stitle"]),
+    ("BLAST",            blast_group_cols),
 ]
 
 if amplicon in ["28S", "18S"]:
