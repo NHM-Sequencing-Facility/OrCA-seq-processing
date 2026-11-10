@@ -65,6 +65,17 @@
 #   OUTPUT_DIR/<basename>_no_hits.fasta           sequences with no hits
 #   OUTPUT_DIR/<basename>_failed.tsv              only written if something failed
 #
+# Columns of the .out files and of <basename>_blast.tsv (set in BLAST_COLS):
+#   qseqid sseqid pident length mismatch gapopen qstart qend sstart send
+#   evalue bitscore staxids stitle
+#
+# staxids (NCBI taxid(s) of the subject/hit sequence):
+#   - Only has real values with a prebuilt NCBI database that includes taxonomy
+#     (e.g. core_nt). A database built here from a FASTA file (-d FASTA) has no
+#     taxonomy, so staxids is 0 or N/A.
+#   - Can hold several taxids separated by ";" when the same subject sequence
+#     is assigned to more than one taxon.
+#
 # =============================================================================
 
 set -o pipefail
@@ -218,7 +229,10 @@ CONDA_BASE=$(conda info --base 2>/dev/null)
 source "${CONDA_BASE}/etc/profile.d/conda.sh"
 conda activate blast
 
-BLAST_COLS="qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore stitle"
+# Output columns (outfmt 6), also used as the header row of <basename>_blast.tsv.
+# staxids needs a prebuilt NCBI database with taxonomy (see header). If these
+# change, don't resume into an OUTPUT_DIR made with the old columns (see header).
+BLAST_COLS="qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore staxids stitle"
 
 # Create output directory if it doesn't exist
 mkdir -p "$OUTPUT_DIR"
